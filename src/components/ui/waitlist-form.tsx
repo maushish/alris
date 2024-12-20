@@ -1,5 +1,9 @@
+'use client'
+
 import { useState, FormEvent } from 'react';
 import { toast } from 'sonner';
+
+import React, { JSX } from 'react';
 
 export function WaitlistForm(): JSX.Element {
   const [email, setEmail] = useState<string>('');

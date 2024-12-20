@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import dbConnect from '../../lib/mongodb';
+import dbConnect from '../../src/lib/mongodb';
 import Waitlist from '../../models/waitlist';
 
 interface WaitlistResponse {
