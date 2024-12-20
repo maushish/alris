@@ -1,40 +1,61 @@
-'use client'
+import { useState, FormEvent } from 'react';
+import { toast } from 'sonner';
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { toast } from "sonner"
+export function WaitlistForm(): JSX.Element {
+  const [email, setEmail] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
 
-export function WaitlistForm() {
-  const [email, setEmail] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setIsLoading(true)
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    toast.success("Thanks for joining our waitlist!")
-    setEmail("")
-    setIsLoading(false)
-  }
+    try {
+      const response = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Something went wrong');
+      }
+
+      toast.success('Successfully joined the waitlist!');
+      setEmail('');
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error('An unexpected error occurred');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="flex w-full max-w-sm gap-2">
-      <Input
+    <form onSubmit={handleSubmit} className="flex gap-2">
+      <input
         type="email"
         placeholder="Enter your email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        className="px-4 py-2 rounded-lg bg-[#111218] border border-blue-900/20"
         required
-        className="bg-background/5 border-background/10"
       />
-      <Button type="submit" disabled={isLoading}>
-        {isLoading ? "Joining..." : "Join Waitlist"}
-      </Button>
+      <button
+        type="submit"
+        disabled={loading}
+        className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+      >
+        {loading ? 'Joining...' : 'Join Waitlist'}
+      </button>
     </form>
-  )
+  );
 }
+
 
