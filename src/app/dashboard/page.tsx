@@ -4,14 +4,29 @@ import { Navbar } from "@/components/ui/navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Wallet, Settings, BotIcon as Robot } from 'lucide-react';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { StrategyModal } from "@/components/ui/strategy-modal";
 import { DashboardView } from "@/components/ui/dashboard-view";
+import { useWallet } from '@solana/wallet-adapter-react';
+import dynamic from 'next/dynamic';
+
+const WalletMultiButtonDynamic = dynamic(
+  async () => (await import('@solana/wallet-adapter-react-ui')).WalletMultiButton,
+  { ssr: false }
+);
 
 export default function Dashboard() {
+  const { publicKey } = useWallet();
   const [currentStep, setCurrentStep] = useState(1);
   const [showStrategyModal, setShowStrategyModal] = useState(false);
   const [isStrategyActive, setIsStrategyActive] = useState(false);
+
+  // Update step when wallet is connected
+  useEffect(() => {
+    if (publicKey && currentStep === 1) {
+      setCurrentStep(2);
+    }
+  }, [publicKey, currentStep]);
 
   const handleStrategyComplete = () => {
     setCurrentStep(prev => Math.min(prev + 1, 3));
@@ -27,7 +42,7 @@ export default function Dashboard() {
       title: "Connect Your Wallet",
       description: "Link your Solana wallet and start exploring.",
       action: "Connect Wallet",
-      onClick: () => setCurrentStep(prev => Math.min(prev + 1, 3))
+      onClick: () => {} // The WalletMultiButton will handle the connection
     },
     {
       icon: Settings,
@@ -72,44 +87,56 @@ export default function Dashboard() {
               const isCompleted = index + 1 < currentStep;
 
               return (
-<Card
-  key={index}
-  className={`bg-[#111218] border-blue-900/20 ${
-    isActive ? 'ring-2 ring-blue-500' : ''
-  }`}
->
-  <CardContent className="flex items-center gap-6 p-6">
-    <div className={`p-3 rounded-full ${
-      isCompleted ? 'bg-blue-500' : 'bg-blue-500/10'
-    }`}>
-      <StepIcon className={`w-6 h-6 ${
-        isCompleted ? 'text-white' : 'text-blue-400'
-      }`} />
-    </div>
-    <div className="flex-1">
-      <h3 className="text-lg font-semibold mb-1 text-white">{step.title}</h3>
-      <p className="text-blue-100/70">{step.description}</p>
-    </div>
-    {isActive && (
-      <Button
-        className="bg-blue-600 hover:bg-blue-700"
-        onClick={step.onClick}
-      >
-        {step.action}
-      </Button>
-    )}
-    {isCompleted && (
-      <div className="text-blue-400">Completed</div>
-    )}
-  </CardContent>
-</Card>
+                <Card
+                  key={index}
+                  className={`bg-[#111218] border-blue-900/20 ${
+                    isActive ? 'ring-2 ring-blue-500' : ''
+                  }`}
+                >
+                  <CardContent className="flex items-center gap-6 p-6">
+                    <div className={`p-3 rounded-full ${
+                      isCompleted ? 'bg-blue-500' : 'bg-blue-500/10'
+                    }`}>
+                      <StepIcon className={`w-6 h-6 ${
+                        isCompleted ? 'text-white' : 'text-blue-400'
+                      }`} />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold mb-1 text-white">{step.title}</h3>
+                      <p className="text-blue-100/70">{step.description}</p>
+                    </div>
+                    {isActive && index === 0 ? (
+                      <div className="wallet-adapter-button-trigger">
+                        <WalletMultiButtonDynamic>
+                          <Button className="gap-2 bg-blue-600 hover:bg-blue-700">
+                            <Wallet className="w-4 h-4" />
+                            {publicKey 
+                              ? `${publicKey.toBase58().substring(0, 7)}...`
+                              : 'Connect Wallet'
+                            }
+                          </Button>
+                        </WalletMultiButtonDynamic>
+                      </div>
+                    ) : isActive && (
+                      <Button
+                        className="bg-blue-600 hover:bg-blue-700"
+                        onClick={step.onClick}
+                      >
+                        {step.action}
+                      </Button>
+                    )}
+                    {isCompleted && (
+                      <div className="text-blue-400">Completed</div>
+                    )}
+                  </CardContent>
+                </Card>
               );
             })}
           </div>
         </div>
       </main>
 
-      <StrategyModal 
+      <StrategyModal
         open={showStrategyModal}
         onOpenChange={setShowStrategyModal}
         onComplete={handleStrategyComplete}
@@ -117,4 +144,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
