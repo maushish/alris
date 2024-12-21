@@ -56,4 +56,6 @@ export default async function handler(
     console.error('Waitlist API Error:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
+  console.log('Request method:', req.method);
+console.log('Request body:', req.body);
 }

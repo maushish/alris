@@ -40,7 +40,8 @@ export function WaitlistForm(): JSX.Element {
       setLoading(false);
     }
   };
-
+  console.log('Submitting form with email:', email);
+  console.log('API URL:', process.env.NEXT_PUBLIC_API_URL);
   return (
     <form onSubmit={handleSubmit} className="flex gap-2">
       <input
